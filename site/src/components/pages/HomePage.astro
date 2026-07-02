@@ -1,0 +1,87 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import CompanyCard from '../CompanyCard.astro';
+import { t, type Locale } from '../../lib/i18n';
+import { SECTORS, sectorLabel } from '../../lib/sectors';
+import { getPublicCompanies } from '../../lib/companies';
+
+interface Props {
+  locale: Locale;
+}
+
+const { locale } = Astro.props;
+const companies = await getPublicCompanies(locale);
+const highlighted = companies.slice(0, 3);
+---
+
+<BaseLayout locale={locale} title={t(locale, 'nav_home')} currentPath="/">
+  <section class="hero">
+    <h1>{t(locale, 'home_hero_title')}</h1>
+    <p>{t(locale, 'home_hero_desc')}</p>
+  </section>
+
+  <section class="sectors">
+    {SECTORS.map((sector) => (
+      <a class="sector-chip" href={`/${locale}/sector/${sector}`}>
+        {sectorLabel(sector, locale)}
+      </a>
+    ))}
+  </section>
+
+  {highlighted.length > 0 && (
+    <section class="highlight">
+      <div class="grid">
+        {highlighted.map((company) => (
+          <CompanyCard locale={locale} company={company} />
+        ))}
+      </div>
+      <a class="view-all" href={`/${locale}/directory`}>{t(locale, 'sector_view_all')} →</a>
+    </section>
+  )}
+
+  <style>
+    .hero {
+      padding: 2rem 0 2.5rem;
+      text-align: center;
+    }
+    .hero h1 {
+      font-size: 1.9rem;
+      margin-bottom: 0.5rem;
+    }
+    .hero p {
+      color: #6b6b7a;
+    }
+    .sectors {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.6rem;
+      justify-content: center;
+      margin-bottom: 3rem;
+    }
+    .sector-chip {
+      padding: 0.5rem 1rem;
+      border-radius: 999px;
+      background: #fff;
+      border: 1px solid #e5e5ea;
+      text-decoration: none;
+      color: #1a1a2e;
+      font-size: 0.9rem;
+    }
+    .sector-chip:hover {
+      border-color: #2452ff;
+      color: #2452ff;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+    }
+    .view-all {
+      display: inline-block;
+      text-decoration: none;
+      color: #2452ff;
+      font-weight: 600;
+    }
+  </style>
+</BaseLayout>

@@ -1,0 +1,39 @@
+name: Deploy
+
+# 11.3·11.4절 — main 브랜치 병합 시(=PR 승인 후) 정적 사이트를 빌드해 Netlify에 배포한다.
+# Netlify의 GitHub 연동을 직접 쓰는 경우 이 워크플로우 없이도 자동 배포되지만,
+# PR 승인이 곧 배포 트리거라는 사실을 저장소 안에서 명시적으로 남기기 위해 워크플로우로 관리한다.
+on:
+  push:
+    branches: [main]
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: "npm"
+          cache-dependency-path: site/package-lock.json
+
+      - name: Install site dependencies
+        working-directory: site
+        run: npm ci
+
+      - name: Build static site
+        working-directory: site
+        run: npm run build
+
+      - name: Deploy to Netlify
+        uses: nwtgck/actions-netlify@v3
+        with:
+          publish-dir: site/dist
+          production-deploy: true
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          deploy-message: "Deploy from ${{ github.sha }}"
+        env:
+          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+          NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}

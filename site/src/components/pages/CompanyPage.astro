@@ -1,0 +1,172 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { t, type Locale } from '../../lib/i18n';
+import { sectorLabel, type Sector } from '../../lib/sectors';
+import type { PublicCompany } from '../../lib/companies';
+
+interface Props {
+  locale: Locale;
+  company: PublicCompany;
+}
+
+const { locale, company } = Astro.props;
+const inquiryMailto = `mailto:hcmc@nipa.kr?subject=${encodeURIComponent(
+  `[${company.name}] Matching Inquiry`,
+)}`;
+---
+
+<BaseLayout
+  locale={locale}
+  title={company.name}
+  currentPath={`/company/${company.company_id}`}
+>
+  <article class="company-detail">
+    <!-- ① 히어로 영역 -->
+    <header class="hero">
+      {company.logo_image && (
+        <img src={company.logo_image} alt={`${company.name} logo`} class="logo" />
+      )}
+      <div>
+        <p class="sector-tag">{sectorLabel(company.sector as Sector, locale)}</p>
+        <h1>{company.name}</h1>
+        <p class="tagline">{company.tagline}</p>
+      </div>
+    </header>
+
+    <!-- ② 솔루션 소개 -->
+    <section>
+      <h2>{locale === 'ko' ? '솔루션 소개' : locale === 'en' ? 'Solution' : 'Giải pháp'}</h2>
+      <p class="solution">{company.solution_summary}</p>
+    </section>
+
+    <!-- ③ 웹사이트 연결 CTA -->
+    <section class="cta-row">
+      <a
+        class="cta primary"
+        href={company.official_website}
+        target="_blank"
+        rel="noopener noreferrer"
+      >
+        {t(locale, 'company_visit_website')}
+      </a>
+      <a class="cta secondary" href={inquiryMailto}>
+        {t(locale, 'company_inquiry')}
+      </a>
+    </section>
+
+    <!-- ④ 희망 협력분야 (바이어) — 실명은 절대 표시하지 않음, target_buyer_display만 렌더링 -->
+    <section>
+      <h2>{t(locale, 'company_target_buyer')}</h2>
+      <p>{company.target_buyer_display}</p>
+    </section>
+
+    <!-- ⑤ 참고 정보 -->
+    <section class="meta-grid">
+      <div>
+        <h3>{t(locale, 'company_business_model')}</h3>
+        <p>{company.business_model}</p>
+      </div>
+      <div>
+        <h3>{t(locale, 'company_ict_stage')}</h3>
+        <p>{company.ict_stage}</p>
+      </div>
+      {company.reference_pdf_links && company.reference_pdf_links.length > 0 && (
+        <div>
+          <h3>PDF</h3>
+          <ul>
+            {company.reference_pdf_links.map((link) => (
+              <li><a href={link} target="_blank" rel="noopener noreferrer">{link}</a></li>
+            ))}
+          </ul>
+        </div>
+      )}
+    </section>
+
+    <!-- ⑥ 문의 연결 -->
+    <section class="inquiry">
+      <h2>{t(locale, 'company_inquiry')}</h2>
+      <p>{t(locale, 'company_inquiry_desc')}</p>
+      <a class="cta secondary" href={inquiryMailto}>hcmc@nipa.kr</a>
+    </section>
+  </article>
+
+  <style>
+    .hero {
+      display: flex;
+      gap: 1.5rem;
+      align-items: center;
+      padding: 1.5rem 0 2rem;
+      border-bottom: 1px solid #e5e5ea;
+      margin-bottom: 2rem;
+    }
+    .logo {
+      width: 88px;
+      height: 88px;
+      object-fit: contain;
+      border-radius: 12px;
+      background: #f2f2f7;
+      flex-shrink: 0;
+    }
+    .sector-tag {
+      margin: 0 0 0.3rem;
+      font-size: 0.8rem;
+      color: #6b6b7a;
+    }
+    .hero h1 {
+      margin: 0 0 0.3rem;
+    }
+    .tagline {
+      margin: 0;
+      color: #3a3a4a;
+    }
+    section {
+      margin-bottom: 2rem;
+    }
+    h2 {
+      font-size: 1.1rem;
+      margin-bottom: 0.5rem;
+    }
+    .solution {
+      line-height: 1.7;
+      white-space: pre-line;
+    }
+    .cta-row {
+      display: flex;
+      gap: 0.75rem;
+      flex-wrap: wrap;
+    }
+    .cta {
+      display: inline-block;
+      padding: 0.65rem 1.25rem;
+      border-radius: 8px;
+      text-decoration: none;
+      font-weight: 600;
+    }
+    .cta.primary {
+      background: #2452ff;
+      color: #fff;
+    }
+    .cta.secondary {
+      background: #eef1ff;
+      color: #2452ff;
+    }
+    .meta-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 1.25rem;
+    }
+    .meta-grid h3 {
+      font-size: 0.85rem;
+      color: #6b6b7a;
+      margin: 0 0 0.25rem;
+    }
+    .meta-grid p {
+      margin: 0;
+    }
+    .inquiry {
+      padding: 1.5rem;
+      background: #f5f6fb;
+      border-radius: 12px;
+    }
+  </style>
+</BaseLayout>

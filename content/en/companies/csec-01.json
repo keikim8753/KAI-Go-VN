@@ -1,0 +1,16 @@
+{
+  "company_id": "csec-01",
+  "name": "Igloo Corporation",
+  "logo_image": "/logos/csec-01.svg",
+  "sector": "cybersecurity",
+  "tagline": "AI-driven security monitoring (SIEM) solutions to counter cyber threats for Vietnamese businesses.",
+  "solution_summary": "Igloo Corporation provides an AI-powered integrated security monitoring platform for real-time threat detection and response. Drawing on security monitoring expertise built across finance, public, and manufacturing sectors, it supports Vietnamese companies in building security infrastructure with a SIEM solution that covers both cloud and on-premise environments.",
+  "business_model": "B2B / B2G",
+  "ict_stage": "Commercially available",
+  "official_website": "https://www.igloo.co.kr",
+  "target_buyer_display": "Local telecom & ICT companies, public ICT institutions",
+  "review_status": "approved",
+  "is_published": true,
+  "source": "google_sheet",
+  "last_synced_at": "2026-07-01T00:00:00+09:00"
+}

@@ -1,0 +1,16 @@
+{
+  "company_id": "csec-01",
+  "name": "이글루코퍼레이션",
+  "logo_image": "/logos/csec-01.svg",
+  "sector": "cybersecurity",
+  "tagline": "AI 기반 보안관제(SIEM) 솔루션으로 베트남 기업의 사이버 위협에 대응합니다.",
+  "solution_summary": "이글루코퍼레이션은 AI 기반 통합 보안관제 플랫폼을 통해 실시간 위협 탐지와 대응을 지원합니다. 금융·공공·제조 분야에서 축적한 보안관제 노하우를 바탕으로 베트남 현지 기업의 보안 인프라 구축을 지원하며, 클라우드와 온프레미스 환경을 모두 아우르는 SIEM 솔루션을 제공합니다.",
+  "business_model": "B2B / B2G",
+  "ict_stage": "판매중",
+  "official_website": "https://www.igloo.co.kr",
+  "target_buyer_display": "현지 통신·ICT 기업, 공공 ICT 기관",
+  "review_status": "approved",
+  "is_published": true,
+  "source": "google_sheet",
+  "last_synced_at": "2026-07-01T00:00:00+09:00"
+}

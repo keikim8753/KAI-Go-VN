@@ -1,0 +1,16 @@
+{
+  "company_id": "cloud-01",
+  "name": "CloudTech (Sample)",
+  "logo_image": "/logos/cloud-01.svg",
+  "sector": "cloud-infra",
+  "tagline": "A multi-cloud management platform supporting cloud migration for Vietnamese businesses.",
+  "solution_summary": "CloudTech provides a multi-cloud management platform spanning AWS, Azure, and GCP, supporting both cost optimization and security compliance. Delivered as SaaS, it also supports integration with local Vietnamese data centers.",
+  "business_model": "SaaS / B2B",
+  "ict_stage": "Commercially available",
+  "official_website": "https://example.com/cloudtech",
+  "target_buyer_display": "Local SI/distribution partners",
+  "review_status": "approved",
+  "is_published": true,
+  "source": "google_sheet",
+  "last_synced_at": "2026-07-01T00:00:00+09:00"
+}

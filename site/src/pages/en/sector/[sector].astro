@@ -1,0 +1,11 @@
+---
+import SectorPage from '../../../components/pages/SectorPage.astro';
+import { SECTORS } from '../../../lib/sectors';
+
+export function getStaticPaths() {
+  return SECTORS.map((sector) => ({ params: { sector } }));
+}
+
+const { sector } = Astro.params;
+---
+<SectorPage locale="en" sector={sector} />

@@ -1,0 +1,16 @@
+{
+  "company_id": "csec-01",
+  "name": "Igloo Corporation",
+  "logo_image": "/logos/csec-01.svg",
+  "sector": "cybersecurity",
+  "tagline": "Giải pháp giám sát an ninh (SIEM) dựa trên AI để ứng phó với các mối đe dọa mạng cho doanh nghiệp Việt Nam.",
+  "solution_summary": "Igloo Corporation cung cấp nền tảng giám sát an ninh tích hợp dựa trên AI, giúp phát hiện và ứng phó với mối đe dọa theo thời gian thực. Dựa trên kinh nghiệm giám sát an ninh tích lũy trong lĩnh vực tài chính, công cộng và sản xuất, công ty hỗ trợ doanh nghiệp Việt Nam xây dựng hạ tầng an ninh với giải pháp SIEM bao phủ cả môi trường đám mây và tại chỗ.",
+  "business_model": "B2B / B2G",
+  "ict_stage": "Đang kinh doanh",
+  "official_website": "https://www.igloo.co.kr",
+  "target_buyer_display": "Doanh nghiệp viễn thông·ICT địa phương, cơ quan ICT công cộng",
+  "review_status": "approved",
+  "is_published": true,
+  "source": "google_sheet",
+  "last_synced_at": "2026-07-01T00:00:00+09:00"
+}

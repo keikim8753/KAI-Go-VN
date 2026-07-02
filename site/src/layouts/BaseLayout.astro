@@ -1,0 +1,104 @@
+---
+import { LOCALES, t, type Locale } from '../lib/i18n';
+
+interface Props {
+  locale: Locale;
+  title: string;
+  currentPath?: string; // 언어 스위처가 같은 페이지의 다른 언어 버전으로 이동하기 위한 경로 (예: /company/csec-01)
+}
+
+const { locale, title, currentPath = '/' } = Astro.props;
+---
+
+<!doctype html>
+<html lang={locale}>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{title} · {t(locale, 'siteTitle')}</title>
+    <meta name="description" content={t(locale, 'home_hero_desc')} />
+  </head>
+  <body>
+    <header class="site-header">
+      <a class="brand" href={`/${locale}/`}>{t(locale, 'siteTitle')}</a>
+      <nav class="main-nav">
+        <a href={`/${locale}/`}>{t(locale, 'nav_home')}</a>
+        <a href={`/${locale}/directory`}>{t(locale, 'nav_directory')}</a>
+        <a href={`/${locale}/about`}>{t(locale, 'nav_about')}</a>
+      </nav>
+      <div class="lang-switcher">
+        {LOCALES.map((l) => (
+          <a href={`/${l}${currentPath}`} aria-current={l === locale ? 'page' : undefined}>
+            {l.toUpperCase()}
+          </a>
+        ))}
+      </div>
+    </header>
+
+    <main>
+      <slot />
+    </main>
+
+    <footer class="site-footer">
+      <p>{t(locale, 'footer_notice')}</p>
+      <p>{t(locale, 'about_contact')}</p>
+    </footer>
+
+    <style>
+      :root {
+        color-scheme: light;
+        font-family: system-ui, -apple-system, 'Malgun Gothic', sans-serif;
+      }
+      body {
+        margin: 0;
+        color: #1a1a2e;
+        background: #fafafa;
+      }
+      .site-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 1rem;
+        padding: 1rem 1.5rem;
+        background: #ffffff;
+        border-bottom: 1px solid #e5e5ea;
+        flex-wrap: wrap;
+      }
+      .brand {
+        font-weight: 700;
+        text-decoration: none;
+        color: #1a1a2e;
+      }
+      .main-nav {
+        display: flex;
+        gap: 1.25rem;
+      }
+      .main-nav a,
+      .lang-switcher a {
+        text-decoration: none;
+        color: #3a3a4a;
+      }
+      .lang-switcher {
+        display: flex;
+        gap: 0.5rem;
+      }
+      .lang-switcher a[aria-current='page'] {
+        font-weight: 700;
+        color: #2452ff;
+      }
+      main {
+        max-width: 1100px;
+        margin: 0 auto;
+        padding: 2rem 1.5rem 4rem;
+        min-height: 60vh;
+      }
+      .site-footer {
+        padding: 2rem 1.5rem;
+        text-align: center;
+        color: #6b6b7a;
+        font-size: 0.875rem;
+        border-top: 1px solid #e5e5ea;
+      }
+    </style>
+  </body>
+</html>

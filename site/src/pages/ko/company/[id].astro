@@ -1,0 +1,14 @@
+---
+import CompanyPage from '../../../components/pages/CompanyPage.astro';
+import { getAllPublicCompanyIds, getPublicCompany } from '../../../lib/companies';
+
+export async function getStaticPaths() {
+  const ids = await getAllPublicCompanyIds('ko');
+  return ids.map((id) => ({ params: { id } }));
+}
+
+const { id } = Astro.params;
+// getStaticPaths와 동일한 소스(getAllPublicCompanyIds)에서 나온 id이므로 항상 존재한다.
+const company = (await getPublicCompany('ko', id!))!;
+---
+<CompanyPage locale="ko" company={company} />

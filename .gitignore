@@ -1,0 +1,8 @@
+# 루트 파이프라인 스크립트(scripts/) 의존성 및 비밀값 — site/.gitignore와 별개로 필요
+node_modules/
+.env
+.env.local
+npm-debug.log*
+
+# macOS
+.DS_Store

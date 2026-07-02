@@ -1,0 +1,16 @@
+{
+  "company_id": "env-01",
+  "name": "PIASPACE",
+  "logo_image": "/logos/env-01.svg",
+  "sector": "environment-energy",
+  "tagline": "Satellite- and drone-based environmental monitoring solutions supporting smart city infrastructure.",
+  "solution_summary": "PIASPACE provides an environment and energy monitoring platform combining satellite imagery with drone data. It applies to a range of smart city domains including air/water quality management, disaster prediction, and energy infrastructure inspection, offering tailored solutions for the environmental management needs of local governments and industrial parks in Vietnam.",
+  "business_model": "B2G / B2B",
+  "ict_stage": "Field-tested",
+  "official_website": "https://www.piaspace.com",
+  "target_buyer_display": "Local governments and smart city project owners",
+  "review_status": "approved",
+  "is_published": true,
+  "source": "google_sheet",
+  "last_synced_at": "2026-07-01T00:00:00+09:00"
+}
