@@ -103,9 +103,6 @@ const isPlaceholderWebsite = /(^|\.)example\.com$/.test(
         </a>
       )}
       <a class="btn btn-secondary" href={inquiryMailto}>{t(locale, 'cta_inquiry')}</a>
-      {company.events?.length > 0 && (
-        <span class="btn btn-secondary" style="cursor:default;">{t(locale, 'cta_meet_event')}: {company.events[0].name}</span>
-      )}
     </section>
   </div>
 </BaseLayout>
