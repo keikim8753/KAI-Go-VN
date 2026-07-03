@@ -3,7 +3,7 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
 import CompanyCard from '../CompanyCard.astro';
 import { t, type Locale } from '../../lib/i18n';
 import { SECTORS, sectorLabel } from '../../lib/sectors';
-import { getPublicCompanies, getCompaniesWithEvents } from '../../lib/companies';
+import { getPublicCompanies } from '../../lib/companies';
 
 interface Props {
   locale: Locale;
@@ -13,7 +13,6 @@ const { locale } = Astro.props;
 const base = import.meta.env.BASE_URL.replace(/\/$/, '');
 const companies = await getPublicCompanies(locale);
 const highlighted = companies.slice(0, 3);
-const withEvents = await getCompaniesWithEvents(locale);
 ---
 
 <BaseLayout locale={locale} title={t(locale, 'nav_home')} currentPath="/">
@@ -27,7 +26,7 @@ const withEvents = await getCompaniesWithEvents(locale);
       <div class="hero-card">
         <div class="segmented-tabs">
           {SECTORS.slice(0, 4).map((s, i) => (
-            <button class={i === 0 ? 'active' : ''}>{sectorLabel(s, locale)}</button>
+            <a class={i === 0 ? 'active' : ''} href={`${base}/${locale}/sector/${s}`}>{sectorLabel(s, locale)}</a>
           ))}
         </div>
         <div class="stat-grid">
@@ -48,17 +47,6 @@ const withEvents = await getCompaniesWithEvents(locale);
       ))}
     </div>
   </section>
-
-  {withEvents.length > 0 && (
-    <section class="section container">
-      <h2>{t(locale, 'upcoming_events')}</h2>
-      <div class="grid-cards">
-        {withEvents.map((company) => (
-          <CompanyCard locale={locale} company={company} />
-        ))}
-      </div>
-    </section>
-  )}
 
   {highlighted.length > 0 && (
     <section class="section container">

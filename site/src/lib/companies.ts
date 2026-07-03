@@ -60,8 +60,3 @@ export async function getAllPublicCompanyIds(locale: Locale): Promise<string[]> 
   const entries = await getApprovedEntries(locale);
   return entries.map((entry) => entry.data.company_id);
 }
-
-export async function getCompaniesWithEvents(locale: Locale): Promise<PublicCompany[]> {
-  const companies = await getPublicCompanies(locale);
-  return companies.filter((c) => c.events && c.events.length > 0);
-}

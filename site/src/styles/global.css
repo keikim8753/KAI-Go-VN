@@ -181,18 +181,18 @@ main {
   width: fit-content;
 }
 
-.segmented-tabs button {
+.segmented-tabs a {
   border: none;
   background: transparent;
   color: var(--text-mid);
   padding: 0.4rem 0.9rem;
   border-radius: 999px;
   font-size: 0.85rem;
-  cursor: pointer;
+  text-decoration: none;
   font-family: inherit;
 }
 
-.segmented-tabs button.active {
+.segmented-tabs a.active {
   background: var(--accent);
   color: var(--accent-contrast);
   font-weight: 600;

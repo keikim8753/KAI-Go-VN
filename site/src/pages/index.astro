@@ -1,5 +1,22 @@
 ---
 import { DEFAULT_LOCALE } from '../lib/i18n';
 const base = import.meta.env.BASE_URL.replace(/\/$/, '');
-return Astro.redirect(`${base}/${DEFAULT_LOCALE}/`);
+const target = `${base}/${DEFAULT_LOCALE}/`;
 ---
+
+<!doctype html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="refresh" content={`0;url=${target}`} />
+    <meta name="robots" content="noindex" />
+    <link rel="canonical" href={target} />
+    <title>Redirecting…</title>
+    <script define:vars={{ target }}>
+      location.replace(target);
+    </script>
+  </head>
+  <body>
+    <a href={target}>{target}</a>
+  </body>
+</html>

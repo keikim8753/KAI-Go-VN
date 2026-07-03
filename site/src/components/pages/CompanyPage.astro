@@ -16,6 +16,17 @@ const inquiryMailto = `mailto:hcmc@nipa.kr?subject=${encodeURIComponent(
   `[${company.name}] Matching Inquiry`,
 )}`;
 const publishedDocs = (company.pdf_documents ?? []).filter((d) => d.is_published);
+// 파일럿/예시 데이터에 example.com 같은 placeholder URL이 남아있을 수 있어, 실제 링크처럼
+// 클릭되지 않도록 방문자에게 "준비 중"으로 표시한다 (README 파일럿 데이터 교체 전 안전장치).
+const isPlaceholderWebsite = /(^|\.)example\.com$/.test(
+  (() => {
+    try {
+      return new URL(company.official_website).hostname;
+    } catch {
+      return '';
+    }
+  })(),
+);
 ---
 
 <BaseLayout locale={locale} title={company.name} currentPath={`/company/${company.company_id}`}>
@@ -84,9 +95,13 @@ const publishedDocs = (company.pdf_documents ?? []).filter((d) => d.is_published
 
     <!-- ⑦ CTA -->
     <section class="section" style="display:flex; gap:0.75rem; flex-wrap:wrap;">
-      <a class="btn btn-primary" href={company.official_website} target="_blank" rel="noopener noreferrer">
-        {t(locale, 'cta_website')}
-      </a>
+      {isPlaceholderWebsite ? (
+        <span class="btn btn-secondary" style="cursor:default; opacity:0.6;">{t(locale, 'website_pending')}</span>
+      ) : (
+        <a class="btn btn-primary" href={company.official_website} target="_blank" rel="noopener noreferrer">
+          {t(locale, 'cta_website')}
+        </a>
+      )}
       <a class="btn btn-secondary" href={inquiryMailto}>{t(locale, 'cta_inquiry')}</a>
       {company.events?.length > 0 && (
         <span class="btn btn-secondary" style="cursor:default;">{t(locale, 'cta_meet_event')}: {company.events[0].name}</span>
