@@ -1,0 +1,265 @@
+---
+import '../styles/global.css';
+---
+
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="robots" content="noindex" />
+    <title>관리자 웹어드민 · 베트남 진출 한국 ICT 기업</title>
+  </head>
+  <body>
+    <header class="site-header">
+      <span class="brand">관리자 웹어드민</span>
+      <span id="whoami" style="color:var(--text-mid); font-size:0.85rem;"></span>
+    </header>
+
+    <main class="container" style="padding: 2rem 0;">
+      <!-- 로그인 전 -->
+      <section id="login-section" class="glass-card" style="padding:1.5rem; max-width:560px;">
+        <h2 style="margin-top:0;">GitHub 개인 액세스 토큰(PAT)으로 로그인</h2>
+        <p style="color:var(--text-mid); font-size:0.9rem; line-height:1.7;">
+          <a href="https://github.com/settings/personal-access-tokens/new" target="_blank" rel="noopener noreferrer" style="color:var(--accent)">
+            GitHub Fine-grained PAT 발급 페이지
+          </a>에서 이 저장소(KAI-Go-VN)에 대해 <strong>Contents: Read and write</strong>,
+          <strong>Pull requests: Read and write</strong> 권한을 부여한 토큰을 발급받아 붙여넣으세요.
+          토큰은 서버로 전송되지 않고 이 브라우저 탭(sessionStorage)에만 저장되며, 탭을 닫으면 사라집니다.
+        </p>
+        <input type="password" id="token-input" placeholder="github_pat_..." style="width:100%; padding:0.6rem; border-radius:8px; border:1px solid var(--glass-border); background:var(--bg-elev); color:var(--text-high); font-family:inherit;" />
+        <button id="login-btn" class="btn btn-primary" style="margin-top:0.75rem;">로그인</button>
+        <p id="login-error" style="color:#ff8080; font-size:0.85rem;"></p>
+      </section>
+
+      <!-- 로그인 후 -->
+      <section id="app-section" hidden>
+        <div class="segmented-tabs" style="margin-bottom:1.5rem;">
+          <a href="#" data-tab="upload" class="active">엑셀 업로드</a>
+          <a href="#" data-tab="approve">승인 대기 목록</a>
+        </div>
+        <button id="logout-btn" class="btn btn-secondary" style="float:right; margin-top:-3.5rem;">로그아웃</button>
+
+        <!-- 업로드 탭 -->
+        <div id="tab-upload">
+          <div class="glass-card" style="padding:1.5rem; margin-bottom:1rem;">
+            <h2 style="margin-top:0;">엑셀 양식 다운로드</h2>
+            <p style="color:var(--text-mid); font-size:0.9rem;">
+              워크북 안에 <code>ko</code>(필수) · <code>en</code> · <code>vi</code>(선택) 시트가 있어야 합니다.
+              ko 시트에는 기업ID·분야·행사·SDG·홈페이지 등 공통 정보도 포함됩니다.
+            </p>
+            <button id="download-template-btn" class="btn btn-secondary">템플릿 다운로드 (.xlsx)</button>
+          </div>
+
+          <div class="glass-card" style="padding:1.5rem;">
+            <h2 style="margin-top:0;">엑셀 업로드</h2>
+            <input type="file" id="file-input" accept=".xlsx" />
+            <div id="parse-errors" style="color:#ff8080; font-size:0.85rem; margin-top:0.75rem;"></div>
+            <div id="parse-preview" style="margin-top:1rem;"></div>
+            <button id="submit-btn" class="btn btn-primary" style="margin-top:1rem;" hidden>PR 생성 (1차 반영)</button>
+            <div id="submit-log" style="color:var(--text-mid); font-size:0.85rem; margin-top:0.75rem; white-space:pre-line;"></div>
+          </div>
+        </div>
+
+        <!-- 승인 탭 -->
+        <div id="tab-approve" hidden>
+          <button id="refresh-prs-btn" class="btn btn-secondary" style="margin-bottom:1rem;">새로고침</button>
+          <div id="pr-list"></div>
+        </div>
+      </section>
+    </main>
+
+    <script>
+      import * as XLSX from 'xlsx';
+      import { verifyToken, listExistingCompanies, listOpenPullRequests, approveAndMerge, GitHubApiError } from '../lib/admin/github-api';
+      import { parseWorkbook, type ParsedCompany } from '../lib/admin/excel-parser';
+      import { submitExcelBatch } from '../lib/admin/submit-batch';
+      import { KO_HEADERS, TRANSLATION_HEADERS, SHEET_NAMES } from '../lib/admin/excel-schema';
+
+      const $ = (id: string) => document.getElementById(id)!;
+      let token = sessionStorage.getItem('admin_pat') ?? '';
+      let currentLogin = '';
+      let parsedCompanies: ParsedCompany[] = [];
+
+      function showApp(login: string) {
+        currentLogin = login;
+        $('whoami').textContent = `@${login}`;
+        $('login-section').setAttribute('hidden', 'true');
+        $('app-section').removeAttribute('hidden');
+      }
+
+      async function tryLogin(t: string) {
+        try {
+          const user = await verifyToken(t);
+          token = t;
+          sessionStorage.setItem('admin_pat', t);
+          showApp(user.login);
+        } catch (err) {
+          $('login-error').textContent = '토큰이 유효하지 않거나 권한이 부족합니다. Contents/Pull requests 쓰기 권한을 확인하세요.';
+        }
+      }
+
+      $('login-btn').addEventListener('click', () => {
+        const t = ($('token-input') as HTMLInputElement).value.trim();
+        if (t) tryLogin(t);
+      });
+
+      $('logout-btn').addEventListener('click', () => {
+        sessionStorage.removeItem('admin_pat');
+        location.reload();
+      });
+
+      // 탭 전환
+      document.querySelectorAll('.segmented-tabs a').forEach((tabLink) => {
+        tabLink.addEventListener('click', (e) => {
+          e.preventDefault();
+          document.querySelectorAll('.segmented-tabs a').forEach((a) => a.classList.remove('active'));
+          tabLink.classList.add('active');
+          const tab = (tabLink as HTMLElement).dataset.tab;
+          $('tab-upload').hidden = tab !== 'upload';
+          $('tab-approve').hidden = tab !== 'approve';
+          if (tab === 'approve') loadOpenPrs();
+        });
+      });
+
+      // 템플릿 다운로드
+      $('download-template-btn').addEventListener('click', () => {
+        const koRow = {
+          [KO_HEADERS.companyId]: '',
+          [KO_HEADERS.name]: '예시기업',
+          [KO_HEADERS.sector]: '사이버보안 및 보안관제',
+          [KO_HEADERS.events]: 'InnoEx|2026-08',
+          [KO_HEADERS.sdgs]: '9, 16',
+          [KO_HEADERS.officialWebsite]: 'https://example.com',
+          [KO_HEADERS.logoImage]: '',
+          [KO_HEADERS.tagline]: '한 줄 가치 제안 예시',
+          [KO_HEADERS.problem]: '베트남 기업이 겪는 문제 예시',
+          [KO_HEADERS.valueSummary]: '솔루션과 가치 예시',
+          [KO_HEADERS.metric1Value]: '99%',
+          [KO_HEADERS.metric1Label]: '정확도',
+          [KO_HEADERS.metric2Value]: '',
+          [KO_HEADERS.metric2Label]: '',
+          [KO_HEADERS.metric3Value]: '',
+          [KO_HEADERS.metric3Label]: '',
+          [KO_HEADERS.vietnamFit]: '베트남 정책 정합성 예시',
+          [KO_HEADERS.targetBuyerDisplay]: '현지 통신·ICT 기업',
+          [KO_HEADERS.isPublished]: 'N',
+        };
+        const translationRow = {
+          [TRANSLATION_HEADERS.companyId]: '',
+          [TRANSLATION_HEADERS.name]: '예시기업',
+          [TRANSLATION_HEADERS.tagline]: '',
+          [TRANSLATION_HEADERS.problem]: '',
+          [TRANSLATION_HEADERS.valueSummary]: '',
+          [TRANSLATION_HEADERS.metric1Value]: '',
+          [TRANSLATION_HEADERS.metric1Label]: '',
+          [TRANSLATION_HEADERS.metric2Value]: '',
+          [TRANSLATION_HEADERS.metric2Label]: '',
+          [TRANSLATION_HEADERS.metric3Value]: '',
+          [TRANSLATION_HEADERS.metric3Label]: '',
+          [TRANSLATION_HEADERS.vietnamFit]: '',
+          [TRANSLATION_HEADERS.targetBuyerDisplay]: '',
+        };
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet([koRow]), SHEET_NAMES.ko);
+        XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet([translationRow]), SHEET_NAMES.en);
+        XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet([translationRow]), SHEET_NAMES.vi);
+        XLSX.writeFile(wb, '기업정보_업로드_템플릿.xlsx');
+      });
+
+      // 파일 업로드 -> 파싱 -> 미리보기
+      $('file-input').addEventListener('change', async (e) => {
+        const file = (e.target as HTMLInputElement).files?.[0];
+        if (!file) return;
+        $('parse-errors').textContent = '';
+        $('parse-preview').textContent = '파싱 중...';
+        const buffer = await file.arrayBuffer();
+        const existing = await listExistingCompanies(token, 'ko');
+        const result = parseWorkbook(buffer, existing);
+        parsedCompanies = result.companies;
+
+        if (result.errors.length > 0) {
+          $('parse-errors').innerHTML = result.errors.map((e) => `⚠ ${e}`).join('<br/>');
+        }
+
+        if (parsedCompanies.length === 0) {
+          $('parse-preview').textContent = '유효한 기업 행이 없습니다.';
+          $('submit-btn').hidden = true;
+          return;
+        }
+
+        $('parse-preview').innerHTML =
+          '<table style="width:100%; border-collapse:collapse; font-size:0.85rem;">' +
+          '<tr style="text-align:left; color:var(--text-mid);"><th>company_id</th><th>기업명</th><th>구분</th><th>언어</th></tr>' +
+          parsedCompanies
+            .map(
+              (c) =>
+                `<tr><td>${c.company_id}</td><td>${c.name}</td><td>${c.isNew ? '신규' : '수정'}</td><td>${Object.keys(c.locales).join(', ')}</td></tr>`,
+            )
+            .join('') +
+          '</table>';
+        $('submit-btn').hidden = false;
+      });
+
+      $('submit-btn').addEventListener('click', async () => {
+        $('submit-btn').setAttribute('disabled', 'true');
+        $('submit-log').textContent = '';
+        try {
+          const pr = await submitExcelBatch(token, currentLogin, parsedCompanies, (p) => {
+            $('submit-log').textContent += p.message + '\n';
+          });
+          $('submit-log').textContent += `\n완료! PR #${pr.number} 생성됨: ${pr.html_url}`;
+        } catch (err) {
+          $('submit-log').textContent += `\n오류: ${err instanceof GitHubApiError ? err.message : String(err)}`;
+        } finally {
+          $('submit-btn').removeAttribute('disabled');
+        }
+      });
+
+      // 승인 탭
+      async function loadOpenPrs() {
+        $('pr-list').textContent = '불러오는 중...';
+        const prs = await listOpenPullRequests(token);
+        if (prs.length === 0) {
+          $('pr-list').textContent = '승인 대기 중인 PR이 없습니다.';
+          return;
+        }
+        $('pr-list').innerHTML = '';
+        for (const pr of prs) {
+          const card = document.createElement('div');
+          card.className = 'glass-card';
+          card.style.cssText = 'padding:1rem 1.25rem; margin-bottom:0.75rem; display:flex; justify-content:space-between; align-items:center; gap:1rem;';
+          card.innerHTML = `
+            <div>
+              <div style="font-weight:600;">${pr.title}</div>
+              <div style="color:var(--text-mid); font-size:0.8rem;">#${pr.number} · @${pr.user.login} · ${new Date(pr.created_at).toLocaleString()}</div>
+              <a href="${pr.html_url}" target="_blank" rel="noopener noreferrer" style="color:var(--accent); font-size:0.85rem;">GitHub에서 프리뷰·diff 확인 →</a>
+            </div>
+          `;
+          const approveBtn = document.createElement('button');
+          approveBtn.className = 'btn btn-primary';
+          approveBtn.textContent = '승인 및 반영';
+          approveBtn.addEventListener('click', async () => {
+            if (!confirm(`PR #${pr.number}을 승인하고 병합할까요? 관련 콘텐츠가 즉시 게시됩니다.`)) return;
+            approveBtn.textContent = '처리 중...';
+            approveBtn.setAttribute('disabled', 'true');
+            try {
+              await approveAndMerge(token, pr.number);
+              card.style.opacity = '0.5';
+              approveBtn.textContent = '완료';
+            } catch (err) {
+              alert(err instanceof GitHubApiError ? err.message : String(err));
+              approveBtn.textContent = '승인 및 반영';
+              approveBtn.removeAttribute('disabled');
+            }
+          });
+          card.appendChild(approveBtn);
+          $('pr-list').appendChild(card);
+        }
+      }
+      $('refresh-prs-btn').addEventListener('click', loadOpenPrs);
+
+      if (token) tryLogin(token);
+    </script>
+  </body>
+</html>
