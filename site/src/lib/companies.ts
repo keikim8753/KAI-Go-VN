@@ -2,28 +2,21 @@ import { getCollection, getEntry, type CollectionEntry } from 'astro:content';
 import type { Locale } from './i18n';
 
 const COLLECTION_BY_LOCALE = {
-  ko: 'companies-ko',
-  en: 'companies-en',
   vi: 'companies-vi',
-} as const satisfies Record<Locale, 'companies-ko' | 'companies-en' | 'companies-vi'>;
+  en: 'companies-en',
+  ko: 'companies-ko',
+} as const satisfies Record<Locale, 'companies-vi' | 'companies-en' | 'companies-ko'>;
 
 type AnyCompanyEntry =
-  | CollectionEntry<'companies-ko'>
+  | CollectionEntry<'companies-vi'>
   | CollectionEntry<'companies-en'>
-  | CollectionEntry<'companies-vi'>;
+  | CollectionEntry<'companies-ko'>;
 
-// 5장: target_buyer_raw·review_status 등 내부 전용 필드는 절대 렌더링하지 않는다.
-// 이 함수가 공개 필드만 남기는 유일한 통로 — 페이지 컴포넌트는 항상 이 함수를 거친 값만 사용한다.
+// 저장소의 모든 필드는 이미 공개 가능 정보다(1.3절) — v1/v2와 달리 내부 전용 필드를 스트리핑할
+// 필요는 없지만, 운영 메타(review_status 등)는 페이지에 렌더링하지 않도록 여기서 한 번에 제외한다.
 export function toPublicCompany(entry: AnyCompanyEntry) {
-  const {
-    target_buyer_raw: _targetBuyerRaw,
-    review_status: _reviewStatus,
-    source: _source,
-    last_edited_by: _lastEditedBy,
-    last_edited_at: _lastEditedAt,
-    last_synced_at: _lastSyncedAt,
-    ...publicData
-  } = entry.data;
+  const { review_status: _reviewStatus, last_edited_by: _by, last_edited_at: _at, ...publicData } =
+    entry.data;
   return publicData;
 }
 
@@ -32,7 +25,7 @@ export type PublicCompany = ReturnType<typeof toPublicCompany>;
 async function getApprovedEntries(locale: Locale): Promise<AnyCompanyEntry[]> {
   const collectionName = COLLECTION_BY_LOCALE[locale];
   const entries = await getCollection(collectionName);
-  // 4장 ⑥단계: 승인(approved)되고 공개(is_published) 상태인 기업만 빌드에 포함한다.
+  // 4.2절: 승인(approved)되고 공개(is_published) 상태인 기업만 빌드에 포함한다.
   return entries.filter(
     (entry) => entry.data.review_status === 'approved' && entry.data.is_published,
   );
@@ -66,4 +59,9 @@ export async function getPublicCompany(
 export async function getAllPublicCompanyIds(locale: Locale): Promise<string[]> {
   const entries = await getApprovedEntries(locale);
   return entries.map((entry) => entry.data.company_id);
+}
+
+export async function getCompaniesWithEvents(locale: Locale): Promise<PublicCompany[]> {
+  const companies = await getPublicCompanies(locale);
+  return companies.filter((c) => c.events && c.events.length > 0);
 }

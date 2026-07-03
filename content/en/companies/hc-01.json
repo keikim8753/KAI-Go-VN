@@ -1,0 +1,24 @@
+{
+  "company_id": "hc-01",
+  "name": "Waycen",
+  "logo_image": "/logos/hc-01.svg",
+  "sector": "healthcare",
+  "events": [],
+  "tagline": "Real-time AI-assisted lesion detection for colonoscopy",
+  "problem": "Colorectal cancer rates in Vietnam are rising quickly, while a shortage of specialist endoscopists and inconsistent early-lesion detection rates leave early-diagnosis infrastructure weak.",
+  "value_summary": "Waycen provides a real-time AI-assisted colonoscopy solution that helps detect lesions and improves the accuracy and consistency of physician diagnosis.",
+  "key_metrics": [
+    { "label": "Adenoma detection increase", "value": "+11%" },
+    { "label": "Real-time processing latency", "value": "<100ms" },
+    { "label": "Hospitals in clinical use", "value": "200+" }
+  ],
+  "vietnam_fit": "Aligned with the Ministry of Health's early cancer-screening expansion policy, enabling remote reading support for provincial hospitals and helping close the healthcare gap.",
+  "sdgs": [3],
+  "official_website": "https://example.com/waycen",
+  "target_buyer_display": "Seeking partnerships with major general hospitals and local healthcare institutions. Matching inquiries via KICC HCMC.",
+  "pdf_documents": [],
+  "review_status": "approved",
+  "is_published": true,
+  "last_edited_by": "pilot-seed",
+  "last_edited_at": "2026-07-03T00:00:00+09:00"
+}

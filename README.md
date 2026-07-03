@@ -1,17 +1,31 @@
-# 2026 집중지원기업 베트남 홍보 웹사이트
+# 베트남 진출 한국 ICT 기업 홍보 웹사이트 (v3)
 
-`베트남_홍보웹사이트_구축계획서.md`(11장)에 정의된 저장소 구조를 코드로 구현한 것입니다.
-이 리포지토리는 **반드시 Private**으로 유지하세요 — `content/**/*.json`에는 바이어 실명 원문(`target_buyer_raw`)이
-검수 전 상태로 커밋 이력에 남을 수 있습니다 (3장·5장 참조).
+`베트남_홍보웹사이트_구축계획서_v3.md`를 코드로 구현한 것입니다. v1/v2(Google API 파이프라인,
+Netlify, Decap CMS)에서 전면 전환 — **시크릿 0개, GitHub 완결형** 아키텍처입니다.
+
+## 핵심 원칙
+
+이 저장소는 **Public**입니다. `content/`, `assets/docs/`, Issue, PR, 커밋 이력까지 전부 공개됩니다.
+따라서:
+- 바이어 실명, 담당자 개인정보는 **어떤 형태로도 입력하지 않습니다** (검토는 입력 전에 완료).
+- PDF는 기업이 **대외 공개용으로 제공에 동의한 자료만** 업로드합니다.
+- 모든 게시물은 입력자가 아닌 **별도 승인자**의 PR 승인을 거쳐야 반영됩니다.
 
 ## 구조
 
 ```
-content/            # 5장 표준 스키마 기준 콘텐츠 (ko/en/vi × companies)
-scripts/             # 4장 데이터 파이프라인 (sync.js, mask.js, validate.js, tag-admin-edit.js)
-site/                # Astro 정적 사이트 (7장 기술스택)
-  └─ public/admin/    # Decap CMS 관리자 페이지 (6.4·7.6절) — 배포 시 /admin 경로로 서빙됨
-.github/workflows/    # sync.yml · admin-review.yml · content-check.yml · deploy.yml (11.3절)
+content/{vi,en,ko}/companies/{company_id}.json   # 5장 콘텐츠 데이터 모델
+assets/docs/{company_id}/{slug}.pdf              # 4.3절 PDF 자료 (공개용만)
+site/                                             # Astro 사이트 (8장 디자인 시스템)
+scripts/
+  issue-to-content.js   # Issue Form 제출 → 콘텐츠 JSON + PDF 생성
+  validate.js            # 개인정보·차단어·is_published 정합성·PDF 크기/타입 검증
+.github/
+  ISSUE_TEMPLATE/company.yml   # 기업 정보 등록/수정 폼 (유일한 입력 경로)
+  workflows/
+    company-intake.yml   # Issue 제출 → 콘텐츠 PR 자동 생성
+    pr-preview.yml        # PR마다 실제 렌더링 프리뷰 배포
+    deploy.yml             # main 병합 시 GitHub Pages 배포
 ```
 
 ## 로컬 개발
@@ -19,42 +33,41 @@ site/                # Astro 정적 사이트 (7장 기술스택)
 ```bash
 cd site
 npm install
-npm run dev      # http://localhost:4321/ko/ 로 리다이렉트됨
+npm run dev      # http://localhost:4321/ 는 /vi/로 리다이렉트
 npm run build    # 정적 빌드 검증
 ```
 
-파이프라인 스크립트(저장소 루트에서 실행):
+검증 스크립트(저장소 루트, 의존성 없이 Node 내장 모듈만 사용):
 
 ```bash
-npm install                 # 루트 package.json — googleapis, @anthropic-ai/sdk(선택 보강용)
-node scripts/validate.js    # 자격증명 없이도 즉시 실행 가능 (PII·검수상태 정합성 점검)
-node scripts/mask.js        # 자격증명 없이도 즉시 실행 가능 (정규식/매핑표 기반 참고용 제안)
-node scripts/sync.js        # 구글 서비스 계정 키 + 시트 ID 필요 (.env.example 참조)
+node scripts/validate.js               # PII·차단어·정합성·PDF 검증 — 자격증명 불필요
+ISSUE_BODY="..." ISSUE_NUMBER=1 ISSUE_AUTHOR=me node scripts/issue-to-content.js
 ```
-
-**바이어 마스킹은 기본적으로 API 키가 필요 없습니다.** 담당자가 관리자 페이지(`/admin`)에서
-`target_buyer_display`를 직접 입력하는 것이 기본 설계이고(3.2절), `scripts/mask.js`는 정규식·업종
-매핑표만으로 참고용 제안을 만들어줍니다. `LLM_API_KEY`(Anthropic API)를 설정하면 `mask.js`·`validate.js`가
-더 나은 초안·재검증을 시도하지만, 없어도 파이프라인 전체가 정상 동작합니다(부록 B 항목 10-1 참조).
 
 ## 지금 바로 되는 것 / 아직 안 되는 것
 
 | 구성 요소 | 상태 |
 |---|---|
-| Astro 사이트 (i18n, 홈/sector/기업상세/directory/about) | ✅ 동작 — 샘플 기업 3개(csec-01, env-01, cloud-01)로 빌드·검증 완료 |
-| 클라이언트 검색/필터 | ✅ 동작 |
-| `validate.js` (PII·검수상태 2차 안전장치) | ✅ 자격증명 없이 로컬 실행 가능, 오탐/미탐 테스트 완료 |
-| `toPublicCompany()` 내부 필드 스트리핑 | ✅ 빌드된 HTML에 `target_buyer_raw` 등 미노출 확인 |
-| `mask.js` 마스킹 참고 제안 (정규식/매핑표) | ✅ 자격증명 없이 로컬 실행 가능 — API는 선택적 보강일 뿐 |
-| Decap CMS 관리자 페이지(`/admin`) | ⚠ 설정만 완료 — Netlify Identity/Git Gateway 활성화(부록 B #14) 전에는 로그인 불가 |
-| `sync.js` (구글 시트 연동) | ⚠ 코드는 작성됨, 부록 B #1~4 자격증명 없이 실행 불가 — 미검증 |
-| `mask.js`/`validate.js`의 LLM 선택적 보강 | ⚠ 코드는 작성됨, `LLM_API_KEY` 없이는 이 부분만 건너뜀(정상 동작) — 실제 LLM 응답은 미검증 |
-| GitHub Actions 4종 | ⚠ 코드는 작성됨, 실제 GitHub 저장소·Secrets 등록 전에는 미검증 |
+| Astro 사이트 (vi 기본, 홈/sector/기업상세/directory/about) | ✅ 동작 — 파일럿 3개사(이글루코퍼레이션·Waycen·8ttech)로 빌드 검증 완료 |
+| 다크 글래스모피즘 디자인(8장), PDF 뷰어(모바일 CSS 폴백) | ✅ 동작 |
+| 클라이언트 검색/필터(분야·SDG·행사) | ✅ 동작 |
+| `validate.js` (PII·차단어 해시·정합성·PDF 검증) | ✅ 자격증명 없이 로컬 실행 가능, 4종 위반 케이스 실제 테스트 완료 |
+| `issue-to-content.js` (Issue Form 파싱) | ✅ 합성 데이터로 종단 테스트 완료 — company_id 자동 채번, 언어별 부분 제출 처리 확인 |
+| GitHub Actions 3종 (company-intake/pr-preview/deploy) | ⚠ YAML 문법 검증만 완료, 실제 GitHub 저장소에서 미검증 |
+| GitHub Pages 배포 | ⚠ 저장소 Pages 설정 필요 (아래 참조) |
 
-## 다음으로 사람이 해야 할 일 (부록 B 대응)
+## 다음으로 사람이 해야 할 일 (부록 체크리스트 대응)
 
-1. 이 폴더를 **Private** GitHub 저장소로 push
-2. 부록 B 체크리스트 1~9, 11~13, 15번 순서로 자격증명·계정 확보 → GitHub Secrets 등록 (11.5절 목록 참조) — 10-1(LLM_API_KEY)은 선택 사항, 나중에 물량이 늘어나면 추가해도 됨
-3. `site_url`, `admin/config.yml`의 `backend.repo` 등 리포지토리별 값 채우기
-4. 브랜치 보호 규칙 설정 — `content-check.yml`의 check를 required status check로 등록 (11.2절)
-5. `node scripts/sync.js` 1회 실행해 47개사 실데이터로 교체 (현재는 샘플 3개사만 있음)
+1. **저장소를 Public으로 전환** — Settings → General → Danger Zone → Change visibility
+2. **Pages 활성화** — Settings → Pages → Source: **"Deploy from a branch"** → Branch: `gh-pages` (첫 `deploy.yml` 실행 후 이 브랜치가 생성됨 — 그 전까지는 옵션에 안 보일 수 있음)
+3. **Branch protection** — Settings → Branches → `main` 보호 규칙: PR 필수, 승인 1인 이상, **셀프 승인 금지**, `validate.js`가 포함된 체크(company-intake.yml)를 required status check로 등록
+4. **협업자 초대** — 검수자(승인자) 2인 이상, Trang/Tram 포함
+5. **66개사 게시 동의·로고·공개용 PDF·보완 수치 확보** (크리티컬 패스, 12장 리스크 1번) — 지금 바로 요청 발송 가능
+6. **파일럿 3개사 데이터 실사** — 지금 있는 이글루코퍼레이션/Waycen/8ttech 콘텐츠는 시연용 예시입니다. 신규 마스터 시트(2.1절)의 실제 값으로 교체 필요
+7. **66개사 본 구축** — 마스터 시트 확보 후, 이 저장소에서 Claude 세션을 열어 2.1절 매핑 규칙대로 JSON 초안 생성 → 검수 → 커밋 (2.3절 — API 불필요, 사람이 직접 검수)
+
+## 알아둘 것
+
+- `assets/docs/`에 올라간 PDF는 **공개 저장소를 통해 영구히 배포되는 것으로 간주**하세요. 삭제해도 git 이력에는 남습니다.
+- `scripts/lib/blocklist.js`의 `BLOCKED_WORD_HASHES`는 비워져 있습니다. 알려진 민감 표현이 있다면 해시만 추가하세요(원문은 절대 커밋하지 않음) — 상단 주석에 해시 생성 명령이 있습니다.
+- 저장소 용량 상한(PDF 기업당 20MB·전체 700MB)은 `scripts/validate.js`가 자동으로 점검합니다.

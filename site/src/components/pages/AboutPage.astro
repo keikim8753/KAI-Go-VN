@@ -10,9 +10,9 @@ const { locale } = Astro.props;
 ---
 
 <BaseLayout locale={locale} title={t(locale, 'about_title')} currentPath="/about">
-  <h1>{t(locale, 'about_title')}</h1>
-  <p>{t(locale, 'about_body')}</p>
-  <p>
-    <a href="mailto:hcmc@nipa.kr">{t(locale, 'about_contact')}</a>
-  </p>
+  <div class="container" style="padding: 2.5rem 0; max-width: 640px;">
+    <h1 style="font-size:1.4rem;">{t(locale, 'about_title')}</h1>
+    <p style="color:var(--text-mid); line-height:1.7;">{t(locale, 'about_body')}</p>
+    <p><a class="btn btn-secondary" href="mailto:hcmc@nipa.kr">{t(locale, 'about_contact')}</a></p>
+  </div>
 </BaseLayout>

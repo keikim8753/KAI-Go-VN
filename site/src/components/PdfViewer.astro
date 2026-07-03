@@ -1,0 +1,71 @@
+---
+// 7장: 데스크톱은 iframe 네이티브 뷰어, 모바일(iOS Safari 인라인 표시 불안정)은
+// 썸네일 카드 + "새 탭에서 보기/다운로드" 버튼으로 CSS만으로 자동 전환한다 (JS 불필요).
+import { t, type Locale } from '../lib/i18n';
+
+interface PdfDocument {
+  title: string;
+  file: string;
+  lang: 'vi' | 'en' | 'ko';
+}
+
+interface Props {
+  locale: Locale;
+  documents: PdfDocument[];
+}
+
+const { locale, documents } = Astro.props;
+const base = import.meta.env.BASE_URL.replace(/\/$/, '');
+---
+
+{documents.length > 0 && (
+  <div class="pdf-library">
+    {documents.map((doc, i) => {
+      const href = `${base}/${doc.file}`;
+      return (
+        <div class="pdf-viewer-frame" style={i > 0 ? 'margin-top: 1rem' : undefined}>
+          <div class="pdf-title-row">
+            <span>{doc.title}</span>
+            <span class="badge">{doc.lang.toUpperCase()}</span>
+          </div>
+          <div class="pdf-desktop-only">
+            <object data={href} type="application/pdf" width="100%" height="640">
+              <a class="btn btn-secondary" href={href} target="_blank" rel="noopener noreferrer">
+                {t(locale, 'doc_download')}
+              </a>
+            </object>
+          </div>
+          <div class="pdf-mobile-fallback pdf-mobile-only">
+            <p>{t(locale, 'doc_mobile_notice')}</p>
+            <a class="btn btn-primary" href={href} target="_blank" rel="noopener noreferrer">
+              {t(locale, 'doc_download')}
+            </a>
+          </div>
+        </div>
+      );
+    })}
+  </div>
+)}
+
+<style>
+  .pdf-title-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.85rem 1.1rem;
+    border-bottom: 1px solid var(--glass-border);
+    font-size: 0.9rem;
+    color: var(--text-high);
+  }
+  .pdf-mobile-only {
+    display: none;
+  }
+  @media (max-width: 767px) {
+    .pdf-desktop-only {
+      display: none;
+    }
+    .pdf-mobile-only {
+      display: block;
+    }
+  }
+</style>

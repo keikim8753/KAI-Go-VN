@@ -1,0 +1,24 @@
+{
+  "company_id": "ai-01",
+  "name": "에이트테크",
+  "logo_image": "/logos/ai-01.svg",
+  "sector": "ai-data",
+  "events": [{ "name": "9월 방문단", "date": "2026-09" }],
+  "tagline": "AI 비전으로 실시간 제품 불량을 선별합니다",
+  "problem": "베트남 제조업체 다수는 여전히 육안 검사에 의존한 품질관리를 하고 있어 불량 선별 정확도가 낮고 검사 인력 의존도가 높습니다.",
+  "value_summary": "에이트테크는 AI 비전 기반 자동 선별 솔루션으로 미세 결함까지 실시간으로 검출하며, 생산 라인에 무중단으로 적용할 수 있습니다.",
+  "key_metrics": [
+    { "label": "선별 정확도", "value": "99.3%" },
+    { "label": "검사 처리 속도", "value": "3배" },
+    { "label": "도입 라인 수", "value": "80+" }
+  ],
+  "vietnam_fit": "베트남 정부의 스마트제조 전환 지원 정책(SMEdx)과 정합하며, 현지 제조 인력 재배치를 통한 생산성 향상에 기여합니다.",
+  "sdgs": [9],
+  "official_website": "https://example.com/8ttech",
+  "target_buyer_display": "현지 제조 대기업 및 산업단지 운영기관과의 협력을 희망하며, 매칭 문의는 KICC HCMC를 통해 받습니다.",
+  "pdf_documents": [],
+  "review_status": "approved",
+  "is_published": true,
+  "last_edited_by": "pilot-seed",
+  "last_edited_at": "2026-07-03T00:00:00+09:00"
+}

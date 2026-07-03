@@ -14,6 +14,14 @@ export async function readCompany(locale, companyId) {
   return JSON.parse(raw);
 }
 
+export async function tryReadCompany(locale, companyId) {
+  try {
+    return await readCompany(locale, companyId);
+  } catch {
+    return null;
+  }
+}
+
 export async function writeCompany(locale, companyId, data) {
   const filePath = companyFilePath(locale, companyId);
   await fs.mkdir(path.dirname(filePath), { recursive: true });
@@ -28,14 +36,4 @@ export async function readAllCompanies(locale) {
   return entries;
 }
 
-export async function readAllLocales(companyId) {
-  const result = {};
-  for (const locale of LOCALES) {
-    try {
-      result[locale] = await readCompany(locale, companyId);
-    } catch {
-      result[locale] = null; // 해당 언어 파일이 아직 없을 수 있음 (번역 대기 등)
-    }
-  }
-  return result;
-}
+export { LOCALES };

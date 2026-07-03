@@ -9,61 +9,63 @@ interface Props {
 }
 
 const { locale } = Astro.props;
+const base = import.meta.env.BASE_URL.replace(/\/$/, '');
 const companies = await getPublicCompanies(locale);
-
-// 7.5절: 완전 정적 빌드이므로 검색 서버 없이, 빌드 시 생성한 이 JSON을
-// 클라이언트 JS가 그대로 불러와 브라우저에서 필터링한다. 47개사 규모에서 충분하다.
-const businessModels = [...new Set(companies.map((c) => c.business_model))].sort();
-const ictStages = [...new Set(companies.map((c) => c.ict_stage))].sort();
+const sdgOptions = [...new Set(companies.flatMap((c) => c.sdgs ?? []))].sort((a, b) => a - b);
 ---
 
 <BaseLayout locale={locale} title={t(locale, 'nav_directory')} currentPath="/directory">
-  <h1>{t(locale, 'nav_directory')}</h1>
+  <div class="container">
+    <h1 style="font-size:1.4rem; margin-top:2rem;">{t(locale, 'nav_directory')}</h1>
 
-  <div class="filters" id="filters">
-    <select id="filter-sector">
-      <option value="">{t(locale, 'directory_filter_sector')}: {t(locale, 'directory_filter_all')}</option>
-      {SECTORS.map((s) => (
-        <option value={s}>{sectorLabel(s, locale)}</option>
-      ))}
-    </select>
-    <select id="filter-business-model">
-      <option value="">{t(locale, 'directory_filter_business_model')}: {t(locale, 'directory_filter_all')}</option>
-      {businessModels.map((m) => <option value={m}>{m}</option>)}
-    </select>
-    <select id="filter-ict-stage">
-      <option value="">{t(locale, 'directory_filter_ict_stage')}: {t(locale, 'directory_filter_all')}</option>
-      {ictStages.map((s) => <option value={s}>{s}</option>)}
-    </select>
+    <div class="filters">
+      <select id="filter-sector">
+        <option value="">{t(locale, 'directory_filter_sector')}: {t(locale, 'directory_filter_all')}</option>
+        {SECTORS.map((s) => <option value={s}>{sectorLabel(s, locale)}</option>)}
+      </select>
+      <select id="filter-sdg">
+        <option value="">{t(locale, 'directory_filter_sdg')}: {t(locale, 'directory_filter_all')}</option>
+        {sdgOptions.map((n) => <option value={n}>SDG {n}</option>)}
+      </select>
+      <label class="event-check">
+        <input type="checkbox" id="filter-event" />
+        {t(locale, 'directory_filter_event')}
+      </label>
+    </div>
+
+    <div class="grid-cards" id="results" style="margin-top:1.5rem;"></div>
+    <p id="no-results" hidden style="color:var(--text-mid);">{t(locale, 'directory_no_results')}</p>
   </div>
 
-  <div class="grid" id="results"></div>
-  <p id="no-results" hidden>{t(locale, 'directory_no_results')}</p>
-
-  <script
-    type="application/json"
-    id="companies-data"
-    set:html={JSON.stringify(companies)}
-  />
-  <script define:vars={{ locale, noResultsText: t(locale, 'directory_no_results') }}>
+  <script type="application/json" id="companies-data" set:html={JSON.stringify(companies)} />
+  <script define:vars={{ locale, base }}>
     const data = JSON.parse(document.getElementById('companies-data').textContent);
     const resultsEl = document.getElementById('results');
     const noResultsEl = document.getElementById('no-results');
     const sectorSelect = document.getElementById('filter-sector');
-    const bmSelect = document.getElementById('filter-business-model');
-    const ictSelect = document.getElementById('filter-ict-stage');
+    const sdgSelect = document.getElementById('filter-sdg');
+    const eventCheck = document.getElementById('filter-event');
 
     function cardHtml(company) {
       const logo = company.logo_image
         ? `<img class="logo" src="${company.logo_image}" alt="" loading="lazy" />`
         : '';
+      const metric = company.key_metrics?.[0];
+      const metricHtml = metric
+        ? `<p class="tagline"><strong style="color:var(--accent)">${metric.value}</strong> ${metric.label}</p>`
+        : '';
+      const badges = [
+        ...(company.events ?? []).map((e) => `<span class="badge">${e.name}</span>`),
+        ...(company.sdgs ?? []).slice(0, 3).map((n) => `<span class="badge">SDG ${n}</span>`),
+      ].join('');
       return `
-        <a class="company-card" href="/${locale}/company/${company.company_id}">
+        <a class="glass-card company-card" href="${base}/${locale}/company/${company.company_id}">
           ${logo}
           <div class="body">
             <h3>${company.name}</h3>
             <p class="tagline">${company.tagline}</p>
-            <span class="tag">${company.business_model}</span>
+            ${metricHtml}
+            <div class="card-badges">${badges}</div>
           </div>
         </a>
       `;
@@ -71,13 +73,13 @@ const ictStages = [...new Set(companies.map((c) => c.ict_stage))].sort();
 
     function render() {
       const sector = sectorSelect.value;
-      const bm = bmSelect.value;
-      const ict = ictSelect.value;
+      const sdg = sdgSelect.value ? Number(sdgSelect.value) : null;
+      const eventOnly = eventCheck.checked;
 
       const filtered = data.filter((c) => {
         if (sector && c.sector !== sector) return false;
-        if (bm && c.business_model !== bm) return false;
-        if (ict && c.ict_stage !== ict) return false;
+        if (sdg && !(c.sdgs ?? []).includes(sdg)) return false;
+        if (eventOnly && !(c.events ?? []).length) return false;
         return true;
       });
 
@@ -85,9 +87,7 @@ const ictStages = [...new Set(companies.map((c) => c.ict_stage))].sort();
       noResultsEl.hidden = filtered.length > 0;
     }
 
-    [sectorSelect, bmSelect, ictSelect].forEach((el) =>
-      el.addEventListener('change', render),
-    );
+    [sectorSelect, sdgSelect, eventCheck].forEach((el) => el.addEventListener('change', render));
     render();
   </script>
 
@@ -97,58 +97,23 @@ const ictStages = [...new Set(companies.map((c) => c.ict_stage))].sort();
       gap: 0.75rem;
       flex-wrap: wrap;
       margin: 1.5rem 0;
+      align-items: center;
     }
-    select {
+    .filters select {
       padding: 0.5rem 0.75rem;
-      border-radius: 8px;
-      border: 1px solid #d5d5dc;
-      background: #fff;
-      font-size: 0.9rem;
+      border-radius: 10px;
+      border: 1px solid var(--glass-border);
+      background: var(--bg-elev);
+      color: var(--text-high);
+      font-size: 0.85rem;
+      font-family: inherit;
     }
-    .grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-      gap: 1rem;
-    }
-  </style>
-  <style is:global>
-    #results .company-card {
+    .event-check {
       display: flex;
-      gap: 1rem;
-      padding: 1.25rem;
-      border: 1px solid #e5e5ea;
-      border-radius: 12px;
-      background: #fff;
-      text-decoration: none;
-      color: inherit;
-    }
-    #results .company-card:hover {
-      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
-    }
-    #results .logo {
-      width: 56px;
-      height: 56px;
-      object-fit: contain;
-      border-radius: 8px;
-      background: #f2f2f7;
-      flex-shrink: 0;
-    }
-    #results h3 {
-      margin: 0 0 0.25rem;
-      font-size: 1.05rem;
-    }
-    #results .tagline {
-      margin: 0 0 0.6rem;
-      font-size: 0.9rem;
-      color: #3a3a4a;
-    }
-    #results .tag {
-      display: inline-block;
-      font-size: 0.75rem;
-      padding: 0.2rem 0.55rem;
-      border-radius: 999px;
-      background: #eef1ff;
-      color: #2452ff;
+      align-items: center;
+      gap: 0.4rem;
+      font-size: 0.85rem;
+      color: var(--text-mid);
     }
   </style>
 </BaseLayout>

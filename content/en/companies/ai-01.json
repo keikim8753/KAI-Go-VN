@@ -1,0 +1,24 @@
+{
+  "company_id": "ai-01",
+  "name": "8ttech",
+  "logo_image": "/logos/ai-01.svg",
+  "sector": "ai-data",
+  "events": [{ "name": "September Delegation Visit", "date": "2026-09" }],
+  "tagline": "Real-time AI vision-based defect sorting",
+  "problem": "Many factories in Vietnam still rely on manual visual inspection, resulting in low defect-sorting accuracy and heavy dependence on inspection staff.",
+  "value_summary": "8ttech provides an AI vision-based automatic sorting solution that detects even micro-defects in real time and can be applied to production lines without disruption.",
+  "key_metrics": [
+    { "label": "Sorting accuracy", "value": "99.3%" },
+    { "label": "Inspection processing speed", "value": "3x" },
+    { "label": "Production lines deployed", "value": "80+" }
+  ],
+  "vietnam_fit": "Aligned with the Vietnamese government's SMEdx smart-manufacturing transition support policy, contributing to workforce reallocation and productivity gains.",
+  "sdgs": [9],
+  "official_website": "https://example.com/8ttech",
+  "target_buyer_display": "Seeking partnerships with major manufacturers and industrial park management boards. Matching inquiries via KICC HCMC.",
+  "pdf_documents": [],
+  "review_status": "approved",
+  "is_published": true,
+  "last_edited_by": "pilot-seed",
+  "last_edited_at": "2026-07-03T00:00:00+09:00"
+}

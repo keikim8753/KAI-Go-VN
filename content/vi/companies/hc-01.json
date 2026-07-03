@@ -1,0 +1,24 @@
+{
+  "company_id": "hc-01",
+  "name": "Waycen",
+  "logo_image": "/logos/hc-01.svg",
+  "sector": "healthcare",
+  "events": [],
+  "tagline": "AI hỗ trợ phát hiện tổn thương trong nội soi đại tràng theo thời gian thực",
+  "problem": "Tỷ lệ ung thư đại trực tràng tại Việt Nam đang tăng nhanh, trong khi tình trạng thiếu bác sĩ nội soi chuyên khoa và sự chênh lệch trong tỷ lệ phát hiện tổn thương sớm khiến hạ tầng chẩn đoán sớm còn yếu.",
+  "value_summary": "Waycen cung cấp giải pháp hỗ trợ nội soi đại tràng theo thời gian thực dựa trên AI, giúp phát hiện tổn thương và nâng cao độ chính xác, tính nhất quán trong chẩn đoán của bác sĩ.",
+  "key_metrics": [
+    { "label": "Tăng tỷ lệ phát hiện u tuyến", "value": "+11%" },
+    { "label": "Độ trễ xử lý thời gian thực", "value": "<100ms" },
+    { "label": "Bệnh viện áp dụng lâm sàng", "value": "200+" }
+  ],
+  "vietnam_fit": "Phù hợp với chính sách mở rộng tầm soát ung thư sớm của Bộ Y tế Việt Nam, hỗ trợ đọc kết quả từ xa cho các bệnh viện tuyến tỉnh, góp phần thu hẹp khoảng cách y tế.",
+  "sdgs": [3],
+  "official_website": "https://example.com/waycen",
+  "target_buyer_display": "Mong muốn hợp tác với bệnh viện đa khoa lớn và cơ sở y tế địa phương. Liên hệ kết nối qua KICC HCMC.",
+  "pdf_documents": [],
+  "review_status": "approved",
+  "is_published": true,
+  "last_edited_by": "pilot-seed",
+  "last_edited_at": "2026-07-03T00:00:00+09:00"
+}

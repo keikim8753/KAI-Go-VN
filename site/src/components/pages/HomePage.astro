@@ -3,85 +3,70 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
 import CompanyCard from '../CompanyCard.astro';
 import { t, type Locale } from '../../lib/i18n';
 import { SECTORS, sectorLabel } from '../../lib/sectors';
-import { getPublicCompanies } from '../../lib/companies';
+import { getPublicCompanies, getCompaniesWithEvents } from '../../lib/companies';
 
 interface Props {
   locale: Locale;
 }
 
 const { locale } = Astro.props;
+const base = import.meta.env.BASE_URL.replace(/\/$/, '');
 const companies = await getPublicCompanies(locale);
 const highlighted = companies.slice(0, 3);
+const withEvents = await getCompaniesWithEvents(locale);
 ---
 
 <BaseLayout locale={locale} title={t(locale, 'nav_home')} currentPath="/">
   <section class="hero">
-    <h1>{t(locale, 'home_hero_title')}</h1>
-    <p>{t(locale, 'home_hero_desc')}</p>
+    <div class="container hero-grid">
+      <div>
+        <h1>{t(locale, 'hero_title')}</h1>
+        <p>{t(locale, 'hero_desc')}</p>
+        <a class="btn btn-primary" href={`${base}/${locale}/directory`}>{t(locale, 'sector_view_all')} →</a>
+      </div>
+      <div class="hero-card">
+        <div class="segmented-tabs">
+          {SECTORS.slice(0, 4).map((s, i) => (
+            <button class={i === 0 ? 'active' : ''}>{sectorLabel(s, locale)}</button>
+          ))}
+        </div>
+        <div class="stat-grid">
+          <div class="stat-cell"><div class="value">66+</div><div class="label">Companies</div></div>
+          <div class="stat-cell"><div class="value">7</div><div class="label">Sectors</div></div>
+          <div class="stat-cell"><div class="value">NIPA</div><div class="label">Supported</div></div>
+        </div>
+      </div>
+    </div>
   </section>
 
-  <section class="sectors">
-    {SECTORS.map((sector) => (
-      <a class="sector-chip" href={`/${locale}/sector/${sector}`}>
-        {sectorLabel(sector, locale)}
-      </a>
-    ))}
+  <section class="section container">
+    <div class="grid-cards">
+      {SECTORS.map((sector) => (
+        <a class="glass-card" style="padding: 1rem 1.25rem; text-decoration: none; color: var(--text-high); font-size: 0.9rem;" href={`${base}/${locale}/sector/${sector}`}>
+          {sectorLabel(sector, locale)}
+        </a>
+      ))}
+    </div>
   </section>
+
+  {withEvents.length > 0 && (
+    <section class="section container">
+      <h2>{t(locale, 'upcoming_events')}</h2>
+      <div class="grid-cards">
+        {withEvents.map((company) => (
+          <CompanyCard locale={locale} company={company} />
+        ))}
+      </div>
+    </section>
+  )}
 
   {highlighted.length > 0 && (
-    <section class="highlight">
-      <div class="grid">
+    <section class="section container">
+      <div class="grid-cards">
         {highlighted.map((company) => (
           <CompanyCard locale={locale} company={company} />
         ))}
       </div>
-      <a class="view-all" href={`/${locale}/directory`}>{t(locale, 'sector_view_all')} →</a>
     </section>
   )}
-
-  <style>
-    .hero {
-      padding: 2rem 0 2.5rem;
-      text-align: center;
-    }
-    .hero h1 {
-      font-size: 1.9rem;
-      margin-bottom: 0.5rem;
-    }
-    .hero p {
-      color: #6b6b7a;
-    }
-    .sectors {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 0.6rem;
-      justify-content: center;
-      margin-bottom: 3rem;
-    }
-    .sector-chip {
-      padding: 0.5rem 1rem;
-      border-radius: 999px;
-      background: #fff;
-      border: 1px solid #e5e5ea;
-      text-decoration: none;
-      color: #1a1a2e;
-      font-size: 0.9rem;
-    }
-    .sector-chip:hover {
-      border-color: #2452ff;
-      color: #2452ff;
-    }
-    .grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-      gap: 1rem;
-      margin-bottom: 1.5rem;
-    }
-    .view-all {
-      display: inline-block;
-      text-decoration: none;
-      color: #2452ff;
-      font-weight: 600;
-    }
-  </style>
 </BaseLayout>

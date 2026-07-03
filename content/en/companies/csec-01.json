@@ -3,14 +3,22 @@
   "name": "Igloo Corporation",
   "logo_image": "/logos/csec-01.svg",
   "sector": "cybersecurity",
-  "tagline": "AI-driven security monitoring (SIEM) solutions to counter cyber threats for Vietnamese businesses.",
-  "solution_summary": "Igloo Corporation provides an AI-powered integrated security monitoring platform for real-time threat detection and response. Drawing on security monitoring expertise built across finance, public, and manufacturing sectors, it supports Vietnamese companies in building security infrastructure with a SIEM solution that covers both cloud and on-premise environments.",
-  "business_model": "B2B / B2G",
-  "ict_stage": "Commercially available",
+  "events": [{ "name": "InnoEx", "date": "2026-08" }],
+  "tagline": "AI-driven security monitoring for your digital infrastructure",
+  "problem": "Businesses and institutions in Vietnam face a rapid rise in cyber threats (ransomware, supply-chain attacks) but lack the security monitoring staff and integrated visibility to keep up.",
+  "value_summary": "Igloo Corporation provides an AI-powered integrated security monitoring (SIEM) platform that automates real-time threat detection and response. Proven across finance, public, and manufacturing sectors, it supports building security infrastructure spanning both on-premise and cloud environments.",
+  "key_metrics": [
+    { "label": "Detection accuracy", "value": "99.1%" },
+    { "label": "Monitoring staff reduction", "value": "40%" },
+    { "label": "Deployments to date", "value": "500+" }
+  ],
+  "vietnam_fit": "Aligned with Decree 53/2022 (data localization) and Vietnam's national cybersecurity strategy, supporting local data center integration to meet compliance while strengthening security.",
+  "sdgs": [9, 16],
   "official_website": "https://www.igloo.co.kr",
-  "target_buyer_display": "Local telecom & ICT companies, public ICT institutions",
+  "target_buyer_display": "Seeking partnerships with local telecom/ICT companies and public institutions. Matching inquiries via KICC HCMC.",
+  "pdf_documents": [],
   "review_status": "approved",
   "is_published": true,
-  "source": "google_sheet",
-  "last_synced_at": "2026-07-01T00:00:00+09:00"
+  "last_edited_by": "pilot-seed",
+  "last_edited_at": "2026-07-03T00:00:00+09:00"
 }

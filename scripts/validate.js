@@ -1,57 +1,71 @@
 #!/usr/bin/env node
-// 11.2절 validate.js — PR 생성 시 CI로 실행되는 2차 안전장치.
-// 사람의 최종 확인(PR 프리뷰 검수)을 대체하지 않으며, 명백한 위반만 자동 차단한다.
+// 9장 validate.js — 개인정보 정규식, 차단어(해시), is_published 정합성, PDF 크기·타입 검증.
+// 3장: 이 검증은 2차 안전장치이며, 입력 전 검토 완료(1.3절 원칙)를 대체하지 않는다.
 
+import fs from 'node:fs/promises';
+import path from 'node:path';
 import { readAllCompanies } from './lib/content-store.js';
-import { detectFormalPII } from './lib/masking-rules.js';
-import { LOCALES } from './lib/paths.js';
+import { findBlockedTokens } from './lib/blocklist.js';
+import { ASSETS_DOCS_ROOT, REPO_ROOT, LOCALES } from './lib/paths.js';
 
-const LLM_API_KEY = process.env.LLM_API_KEY;
+const EMAIL_PATTERN = /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/g;
+const PHONE_PATTERN = /(\+?\d{1,3}[-.\s]?)?\(?\d{2,4}\)?[-.\s]?\d{3,4}[-.\s]?\d{3,4}/g;
+const MAX_PDF_BYTES = 10 * 1024 * 1024;
+const MAX_COMPANY_PDF_BYTES = 20 * 1024 * 1024;
+const MAX_REPO_PDF_BYTES = 700 * 1024 * 1024; // 12장 리스크 4번 — 저장소 전체 상한
 
-// target_buyer_raw, review_status 등은 원래도 공개 렌더링되지 않지만(5장 스키마, src/lib/companies.ts
-// 의 toPublicCompany() 참조), 실수로 공개 필드에 값이 복사되는 사고를 잡기 위해 아래 "공개 필드"만 검사한다.
-const PUBLIC_TEXT_FIELDS = ['name', 'tagline', 'solution_summary', 'target_buyer_display'];
+const TEXT_FIELDS = ['name', 'tagline', 'problem', 'value_summary', 'vietnam_fit', 'target_buyer_display'];
 
-// 선택적 보강 — LLM_API_KEY가 없으면 이 함수는 호출되지 않는다 (기본 검증은 정규식/정합성 검사만으로 완결됨).
-async function llmCheckProperNounLeak(text) {
-  const { default: Anthropic } = await import('@anthropic-ai/sdk');
-  const client = new Anthropic({ apiKey: LLM_API_KEY });
-  const response = await client.messages.create({
-    model: 'claude-sonnet-4-5',
-    max_tokens: 256,
-    system:
-      '아래 텍스트에 구체적인 회사명·기관명·사람 이름(고유명사)이 포함되어 있는지 판정하세요. ' +
-      '업종/유형을 일반화한 표현(예: "현지 SI 파트너", "대기업 그룹")은 위반이 아닙니다. ' +
-      'JSON으로만 응답: {"leaked": true|false, "found": ["..."]}',
-    messages: [{ role: 'user', content: text }],
-  });
-  const textBlock = response.content.find((b) => b.type === 'text');
-  try {
-    return { ...JSON.parse(textBlock.text), parseError: false };
-  } catch {
-    return { leaked: false, parseError: true };
-  }
+function detectPii(text) {
+  if (!text) return [];
+  const hits = [];
+  const emails = text.match(EMAIL_PATTERN);
+  if (emails) hits.push(...emails.map((v) => ({ type: 'email', value: v })));
+  const phones = text.match(PHONE_PATTERN);
+  if (phones) hits.push(...phones.map((v) => ({ type: 'phone', value: v })));
+  return hits;
 }
 
-async function validateCompany(locale, id, data) {
+function validateCompanyFields(locale, id, data) {
   const violations = [];
 
-  // 1) 이메일/전화번호 형식 PII — 공개 필드에서 확정 탐지 (정규식, 항상 실행)
-  for (const field of PUBLIC_TEXT_FIELDS) {
+  for (const field of TEXT_FIELDS) {
     const value = data[field];
     if (typeof value !== 'string') continue;
-    const hits = detectFormalPII(value);
-    if (hits.length > 0) {
+
+    const piiHits = detectPii(value);
+    if (piiHits.length > 0) {
       violations.push({
         severity: 'error',
         rule: 'formal-pii',
         field,
-        detail: `${field}에 이메일/전화번호로 보이는 값이 포함됨: ${hits.map((h) => h.value).join(', ')}`,
+        detail: `${field}에 이메일/전화번호로 보이는 값이 포함됨: ${piiHits.map((h) => h.value).join(', ')}`,
+      });
+    }
+
+    const blockedHits = findBlockedTokens(value);
+    if (blockedHits.length > 0) {
+      violations.push({
+        severity: 'error',
+        rule: 'blocked-word',
+        field,
+        detail: `${field}에 내부 차단어 목록에 등록된 표현이 포함됨: ${blockedHits.join(', ')}`,
       });
     }
   }
 
-  // 2) is_published가 true이면 review_status는 반드시 approved여야 한다 (4장 ⑥단계 강제).
+  for (const metric of data.key_metrics ?? []) {
+    const blockedHits = findBlockedTokens(metric.label);
+    if (blockedHits.length > 0) {
+      violations.push({
+        severity: 'error',
+        rule: 'blocked-word',
+        field: 'key_metrics',
+        detail: `key_metrics 설명에 차단어 포함: ${blockedHits.join(', ')}`,
+      });
+    }
+  }
+
   if (data.is_published === true && data.review_status !== 'approved') {
     violations.push({
       severity: 'error',
@@ -60,67 +74,100 @@ async function validateCompany(locale, id, data) {
     });
   }
 
-  // 3) target_buyer_raw 원문이 공개 필드에 그대로 복사되지 않았는지 확인 (복붙 사고 방지).
-  if (data.target_buyer_raw && data.target_buyer_raw.trim().length > 3) {
-    for (const field of PUBLIC_TEXT_FIELDS) {
-      const value = data[field];
-      if (typeof value === 'string' && value.includes(data.target_buyer_raw.trim())) {
-        violations.push({
-          severity: 'error',
-          rule: 'raw-copied-to-public-field',
-          field,
-          detail: `target_buyer_raw 원문이 공개 필드 '${field}'에 그대로 포함되어 있습니다.`,
-        });
-      }
-    }
-  }
-
-  // 4) 선택적 보강 — LLM_API_KEY가 설정된 경우에만 고유명사 재검증을 추가로 수행한다 (3.2·11.2절).
-  // 키가 없으면 이 단계는 완전히 건너뛴다 — 기본 검증(1~3번)만으로도 병합 게이트는 완결된다.
-  if (LLM_API_KEY && data.target_buyer_display) {
-    const result = await llmCheckProperNounLeak(data.target_buyer_display);
-    if (result.parseError) {
-      violations.push({
-        severity: 'warning',
-        rule: 'llm-check-unparseable',
-        detail: 'LLM 응답을 해석하지 못해 이번 실행에서는 고유명사 재검증을 건너뛰었습니다.',
-      });
-    } else if (result.leaked) {
-      violations.push({
-        severity: 'error',
-        rule: 'llm-proper-noun-leak',
-        field: 'target_buyer_display',
-        detail: `LLM이 고유명사 노출 가능성을 발견함: ${(result.found ?? []).join(', ')}`,
-      });
-    }
-  }
-
   return violations.map((v) => ({ locale, id, ...v }));
 }
 
-async function main() {
-  console.log(
-    LLM_API_KEY
-      ? '[validate] LLM_API_KEY 감지됨 — 고유명사 재검증(선택적 보강)을 포함해 실행합니다.'
-      : '[validate] LLM_API_KEY 없음 — 정규식/정합성 검사만 실행합니다 (기본 동작, 정상입니다).',
-  );
+async function validatePdfFiles() {
+  const violations = [];
+  let totalBytes = 0;
 
+  let companyDirs = [];
+  try {
+    companyDirs = await fs.readdir(ASSETS_DOCS_ROOT);
+  } catch {
+    return violations; // assets/docs 아직 없음 — 정상
+  }
+
+  for (const companyId of companyDirs) {
+    const dir = path.join(ASSETS_DOCS_ROOT, companyId);
+    const stat = await fs.stat(dir);
+    if (!stat.isDirectory()) continue;
+
+    const files = await fs.readdir(dir);
+    let companyBytes = 0;
+
+    for (const file of files) {
+      const filePath = path.join(dir, file);
+      const buffer = await fs.readFile(filePath);
+      companyBytes += buffer.length;
+      totalBytes += buffer.length;
+
+      if (!file.toLowerCase().endsWith('.pdf')) {
+        violations.push({
+          severity: 'error',
+          rule: 'pdf-invalid-extension',
+          detail: `${path.relative(REPO_ROOT, filePath)}는 .pdf 확장자가 아닙니다.`,
+        });
+        continue;
+      }
+
+      // PDF 매직 바이트(%PDF) 확인 — MIME 스푸핑 방지
+      if (buffer.subarray(0, 4).toString('ascii') !== '%PDF') {
+        violations.push({
+          severity: 'error',
+          rule: 'pdf-invalid-magic-bytes',
+          detail: `${path.relative(REPO_ROOT, filePath)}가 유효한 PDF 파일이 아닙니다.`,
+        });
+      }
+
+      if (buffer.length > MAX_PDF_BYTES) {
+        violations.push({
+          severity: 'error',
+          rule: 'pdf-too-large',
+          detail: `${path.relative(REPO_ROOT, filePath)}가 10MB를 초과합니다 (${(buffer.length / 1024 / 1024).toFixed(1)}MB).`,
+        });
+      }
+    }
+
+    if (companyBytes > MAX_COMPANY_PDF_BYTES) {
+      violations.push({
+        severity: 'error',
+        rule: 'pdf-company-quota-exceeded',
+        detail: `${companyId}의 PDF 총 용량이 20MB를 초과합니다 (${(companyBytes / 1024 / 1024).toFixed(1)}MB).`,
+      });
+    }
+  }
+
+  if (totalBytes > MAX_REPO_PDF_BYTES) {
+    violations.push({
+      severity: 'warning',
+      rule: 'pdf-repo-quota-warning',
+      detail: `저장소 전체 PDF 용량이 700MB에 근접/초과했습니다 (${(totalBytes / 1024 / 1024).toFixed(0)}MB). 12장 리스크 4번 참조 — 압축 또는 외부 스토리지 전환을 검토하세요.`,
+    });
+  }
+
+  return violations;
+}
+
+async function main() {
   const allViolations = [];
 
   for (const locale of LOCALES) {
     const companies = await readAllCompanies(locale);
     for (const { id, data } of companies) {
-      const violations = await validateCompany(locale, id, data);
-      allViolations.push(...violations);
+      allViolations.push(...validateCompanyFields(locale, id, data));
     }
   }
+
+  allViolations.push(...(await validatePdfFiles()));
 
   const errors = allViolations.filter((v) => v.severity === 'error');
   const warnings = allViolations.filter((v) => v.severity === 'warning');
 
   for (const v of [...errors, ...warnings]) {
     const tag = v.severity === 'error' ? '✗ ERROR' : '⚠ WARN ';
-    console.log(`${tag} [${v.locale}/${v.id}] (${v.rule}) ${v.detail}`);
+    const loc = v.locale ? `[${v.locale}/${v.id}] ` : '';
+    console.log(`${tag} ${loc}(${v.rule}) ${v.detail}`);
   }
 
   console.log(`\n[validate] ${errors.length}건 오류, ${warnings.length}건 경고.`);
@@ -128,7 +175,7 @@ async function main() {
   if (errors.length > 0) {
     console.error(
       '\n검증 실패 — 위 오류를 해결해야 PR을 병합할 수 있습니다. ' +
-        '(이 검증은 2차 안전장치이며 사람의 최종 확인을 대체하지 않습니다. 11.2절 참조)',
+        '(이 검증은 2차 안전장치이며, 입력 전 검토 완료 원칙을 대체하지 않습니다. 1.3·3장 참조)',
     );
     process.exit(1);
   }

@@ -8,7 +8,6 @@ export async function getStaticPaths() {
 }
 
 const { id } = Astro.params;
-// getStaticPaths와 동일한 소스(getAllPublicCompanyIds)에서 나온 id이므로 항상 존재한다.
 const company = (await getPublicCompany('en', id!))!;
 ---
 <CompanyPage locale="en" company={company} />

@@ -1,0 +1,24 @@
+{
+  "company_id": "hc-01",
+  "name": "웨이센",
+  "logo_image": "/logos/hc-01.svg",
+  "sector": "healthcare",
+  "events": [],
+  "tagline": "실시간 AI로 대장내시경 병변 발견을 돕습니다",
+  "problem": "베트남은 대장암 발병률이 빠르게 증가하고 있지만, 내시경 전문의 부족과 초기 병변 발견율 편차로 조기 진단 인프라가 취약한 상황입니다.",
+  "value_summary": "웨이센은 AI 기반 실시간 대장내시경 보조 솔루션으로 병변 발견을 지원하고, 의료진의 진단 정확도와 일관성을 높입니다.",
+  "key_metrics": [
+    { "label": "선종 발견율 향상", "value": "+11%" },
+    { "label": "실시간 처리 지연", "value": "<100ms" },
+    { "label": "임상 적용 병원", "value": "200+" }
+  ],
+  "vietnam_fit": "베트남 보건부의 암 조기검진 확대 정책과 정합하며, 지방 병원까지 원격 판독 지원이 가능해 의료 격차 해소에 기여합니다.",
+  "sdgs": [3],
+  "official_website": "https://example.com/waycen",
+  "target_buyer_display": "현지 대형 종합병원 및 의료기관과의 협력을 희망하며, 매칭 문의는 KICC HCMC를 통해 받습니다.",
+  "pdf_documents": [],
+  "review_status": "approved",
+  "is_published": true,
+  "last_edited_by": "pilot-seed",
+  "last_edited_at": "2026-07-03T00:00:00+09:00"
+}

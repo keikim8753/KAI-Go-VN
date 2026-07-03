@@ -1,0 +1,39 @@
+name: PR Preview
+
+# 4.4절 — PR마다 실제 렌더링을 확인할 수 있는 임시 배포. 승인자는 여기서 문구·번역·
+# PDF 뷰어를 눈으로 확인한 뒤 승인한다. PR 병합·종료 시 프리뷰는 자동 삭제된다.
+# 주의: 이 액션은 gh-pages 브랜치에 프리뷰를 쓰므로, 저장소 Pages 설정이
+# "Deploy from a branch: gh-pages"여야 하고 deploy.yml도 같은 브랜치를 사용해야 한다.
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, closed]
+    paths:
+      - "content/**"
+      - "assets/**"
+      - "site/**"
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  preview:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        if: github.event.action != 'closed'
+        with:
+          node-version: 22
+
+      - name: Install & build site
+        if: github.event.action != 'closed'
+        working-directory: site
+        run: |
+          npm ci
+          npm run build
+
+      - uses: rossjrw/pr-preview-action@v1
+        with:
+          source-dir: ./site/dist

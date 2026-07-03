@@ -1,8 +1,9 @@
 name: Deploy
 
-# 11.3·11.4절 — main 브랜치 병합 시(=PR 승인 후) 정적 사이트를 빌드해 Netlify에 배포한다.
-# Netlify의 GitHub 연동을 직접 쓰는 경우 이 워크플로우 없이도 자동 배포되지만,
-# PR 승인이 곧 배포 트리거라는 사실을 저장소 안에서 명시적으로 남기기 위해 워크플로우로 관리한다.
+# 9·10장 — main 브랜치 병합 시(=PR 승인 후) 정적 사이트를 빌드해 GitHub Pages에 배포한다.
+# pr-preview.yml과 같은 gh-pages 브랜치를 쓰되, keep_files: true로 프리뷰 하위 폴더를
+# 덮어쓰지 않는다. 저장소 Settings → Pages → Source를 "Deploy from a branch: gh-pages"로
+# 설정해야 실제로 서빙된다 (부록 체크리스트 3번).
 on:
   push:
     branches: [main]
@@ -27,13 +28,9 @@ jobs:
         working-directory: site
         run: npm run build
 
-      - name: Deploy to Netlify
-        uses: nwtgck/actions-netlify@v3
+      - name: Deploy to GitHub Pages (gh-pages branch)
+        uses: peaceiris/actions-gh-pages@v4
         with:
-          publish-dir: site/dist
-          production-deploy: true
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          deploy-message: "Deploy from ${{ github.sha }}"
-        env:
-          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
-          NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./site/dist
+          keep_files: true

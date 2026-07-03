@@ -3,14 +3,22 @@
   "name": "Igloo Corporation",
   "logo_image": "/logos/csec-01.svg",
   "sector": "cybersecurity",
-  "tagline": "Giải pháp giám sát an ninh (SIEM) dựa trên AI để ứng phó với các mối đe dọa mạng cho doanh nghiệp Việt Nam.",
-  "solution_summary": "Igloo Corporation cung cấp nền tảng giám sát an ninh tích hợp dựa trên AI, giúp phát hiện và ứng phó với mối đe dọa theo thời gian thực. Dựa trên kinh nghiệm giám sát an ninh tích lũy trong lĩnh vực tài chính, công cộng và sản xuất, công ty hỗ trợ doanh nghiệp Việt Nam xây dựng hạ tầng an ninh với giải pháp SIEM bao phủ cả môi trường đám mây và tại chỗ.",
-  "business_model": "B2B / B2G",
-  "ict_stage": "Đang kinh doanh",
+  "events": [{ "name": "InnoEx", "date": "2026-08" }],
+  "tagline": "Nền tảng giám sát an ninh AI cho hạ tầng số của bạn",
+  "problem": "Các doanh nghiệp và cơ quan tại Việt Nam đang đối mặt với sự gia tăng nhanh chóng của các mối đe dọa mạng (ransomware, tấn công chuỗi cung ứng) nhưng thiếu nhân lực giám sát an ninh và hệ thống theo dõi tích hợp.",
+  "value_summary": "Igloo Corporation cung cấp nền tảng giám sát an ninh tích hợp (SIEM) dựa trên AI, tự động hóa việc phát hiện và ứng phó mối đe dọa theo thời gian thực. Kinh nghiệm được kiểm chứng tại lĩnh vực tài chính, công cộng và sản xuất, hỗ trợ xây dựng hạ tầng an ninh bao phủ cả môi trường tại chỗ và đám mây.",
+  "key_metrics": [
+    { "label": "Độ chính xác phát hiện", "value": "99.1%" },
+    { "label": "Giảm nhân lực giám sát", "value": "40%" },
+    { "label": "Số dự án triển khai", "value": "500+" }
+  ],
+  "vietnam_fit": "Phù hợp với Nghị định 53/2022 (nội địa hóa dữ liệu) và chiến lược an ninh mạng quốc gia của Việt Nam, hỗ trợ triển khai trung tâm dữ liệu tại chỗ để vừa tuân thủ quy định vừa tăng cường bảo mật.",
+  "sdgs": [9, 16],
   "official_website": "https://www.igloo.co.kr",
-  "target_buyer_display": "Doanh nghiệp viễn thông·ICT địa phương, cơ quan ICT công cộng",
+  "target_buyer_display": "Mong muốn hợp tác với doanh nghiệp viễn thông·ICT địa phương và cơ quan công quyền. Liên hệ kết nối qua KICC HCMC.",
+  "pdf_documents": [],
   "review_status": "approved",
   "is_published": true,
-  "source": "google_sheet",
-  "last_synced_at": "2026-07-01T00:00:00+09:00"
+  "last_edited_by": "pilot-seed",
+  "last_edited_at": "2026-07-03T00:00:00+09:00"
 }

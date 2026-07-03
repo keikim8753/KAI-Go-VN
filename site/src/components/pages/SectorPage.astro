@@ -16,20 +16,13 @@ const label = sectorLabel(sector, locale);
 ---
 
 <BaseLayout locale={locale} title={label} currentPath={`/sector/${sector}`}>
-  <h1>{label}</h1>
-  <div class="grid">
-    {companies.map((company) => (
-      <CompanyCard locale={locale} company={company} />
-    ))}
+  <div class="container section" style="border-top: none;">
+    <h1 style="font-size: 1.4rem;">{label}</h1>
+    <div class="grid-cards" style="margin-top: 1.5rem;">
+      {companies.map((company) => (
+        <CompanyCard locale={locale} company={company} />
+      ))}
+    </div>
+    {companies.length === 0 && <p style="color: var(--text-mid);">{t(locale, 'directory_no_results')}</p>}
   </div>
-  {companies.length === 0 && <p>{t(locale, 'directory_no_results')}</p>}
-
-  <style>
-    .grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-      gap: 1rem;
-      margin-top: 1.5rem;
-    }
-  </style>
 </BaseLayout>

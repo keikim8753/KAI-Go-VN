@@ -3,14 +3,22 @@
   "name": "이글루코퍼레이션",
   "logo_image": "/logos/csec-01.svg",
   "sector": "cybersecurity",
-  "tagline": "AI 기반 보안관제(SIEM) 솔루션으로 베트남 기업의 사이버 위협에 대응합니다.",
-  "solution_summary": "이글루코퍼레이션은 AI 기반 통합 보안관제 플랫폼을 통해 실시간 위협 탐지와 대응을 지원합니다. 금융·공공·제조 분야에서 축적한 보안관제 노하우를 바탕으로 베트남 현지 기업의 보안 인프라 구축을 지원하며, 클라우드와 온프레미스 환경을 모두 아우르는 SIEM 솔루션을 제공합니다.",
-  "business_model": "B2B / B2G",
-  "ict_stage": "판매중",
+  "events": [{ "name": "InnoEx", "date": "2026-08" }],
+  "tagline": "AI 기반 보안관제로 디지털 인프라를 지킵니다",
+  "problem": "베트남 기업·기관은 랜섬웨어·공급망 공격 등 사이버 위협이 빠르게 늘고 있지만, 보안관제 인력과 통합 모니터링 체계가 부족한 상황입니다.",
+  "value_summary": "이글루코퍼레이션은 AI 기반 통합보안관제(SIEM) 플랫폼으로 실시간 위협 탐지와 대응을 자동화합니다. 금융·공공·제조 분야에서 검증된 노하우로 온프레미스와 클라우드를 아우르는 보안 인프라 구축을 지원합니다.",
+  "key_metrics": [
+    { "label": "위협 탐지 정확도", "value": "99.1%" },
+    { "label": "관제 인력 절감", "value": "40%" },
+    { "label": "누적 구축 사례", "value": "500+" }
+  ],
+  "vietnam_fit": "베트남 정부의 Decree 53/2022(데이터 현지화)와 국가 사이버보안 전략에 부합하며, 현지 데이터센터 연동 구축이 가능해 규제 준수와 보안 강화를 동시에 달성합니다.",
+  "sdgs": [9, 16],
   "official_website": "https://www.igloo.co.kr",
-  "target_buyer_display": "현지 통신·ICT 기업, 공공 ICT 기관",
+  "target_buyer_display": "현지 통신·ICT 기업 및 공공기관과의 파트너십을 희망하며, 매칭 문의는 KICC HCMC를 통해 받습니다.",
+  "pdf_documents": [],
   "review_status": "approved",
   "is_published": true,
-  "source": "google_sheet",
-  "last_synced_at": "2026-07-01T00:00:00+09:00"
+  "last_edited_by": "pilot-seed",
+  "last_edited_at": "2026-07-03T00:00:00+09:00"
 }
